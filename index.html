@@ -28,9 +28,11 @@
   <div id="modal" class="overlay" style="display:none">
     <div class="modal">
       <div class="modal-head">
-        <span id="modalName">Player</span>
+        <span class="mh-left"><span id="modalAvatar"></span><span id="modalName">Player</span></span>
         <button class="x" onclick="closeModal()">✕</button>
       </div>
+      <div id="modalFact" class="modal-fact"></div>
+      <button class="edit-btn" onclick="editPlayer()">✏️ Edit his profile</button>
       <div class="col-label">Give him points 🥰</div>
       <div class="presets">
         <button onclick="quick(3,'💬 gave a genuine compliment')">💬 Genuine compliment <b>+3</b></button>
@@ -75,10 +77,11 @@
     padding: 14px 18px; margin-bottom: 16px; text-align: center;
     box-shadow: 0 6px 20px rgba(220,175,60,.25);
   }
-  .champion .crown { font-size: 30px; }
+  .champion .crown { font-size: 26px; }
   .champion .cname { font-size: 20px; font-weight: 800; margin: 2px 0; }
   .champion .clabel { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: #b58a1e; }
   .champion .clevel { font-size: 13px; color: #8a6d1f; font-weight: 600; }
+  .champion .avatar { width: 60px; height: 60px; font-size: 32px; margin: 2px auto 4px; border-color: #e9c65f; }
 
   .board { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
   .row {
@@ -89,16 +92,22 @@
   .row.leader { border-color: #e9c65f; background: #fffaf0; }
   .row:active { transform: scale(0.98); }
   .row:hover { box-shadow: 0 4px 14px rgba(210,170,90,.18); }
-  .rank { font-size: 22px; width: 30px; text-align: center; }
-  .rank.num { font-size: 15px; color: #b8a888; font-weight: 700; }
+  .rank { font-size: 20px; width: 26px; text-align: center; flex-shrink: 0; }
+  .rank.num { font-size: 14px; color: #b8a888; font-weight: 700; }
+
+  /* Avatar */
+  .avatar { width: 42px; height: 42px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 22px; background: #fbeecb; border: 2px solid #f0e2c8; overflow: hidden; flex-shrink: 0; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
   .pmid { flex: 1; min-width: 0; }
-  .pname { font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 7px; }
+  .pname { font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
   .level-tag { font-size: 11px; font-weight: 700; color: #a07d2a; background: #fbeecb; padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
-  .progress-wrap { margin-top: 7px; }
+  .fact { font-size: 12px; color: #a08a63; font-style: italic; margin: 2px 0 1px; }
+  .progress-wrap { margin-top: 6px; }
   .bar { height: 7px; background: #f0e6d0; border-radius: 6px; overflow: hidden; }
   .bar > i { display: block; height: 100%; background: linear-gradient(90deg, #f0c14b, #e0a83f); border-radius: 6px; transition: width .4s; }
   .next { font-size: 11px; color: #a8987a; margin-top: 4px; }
-  .pts { font-size: 22px; font-weight: 800; min-width: 46px; text-align: right; color: #3f9d5a; }
+  .pts { font-size: 22px; font-weight: 800; min-width: 42px; text-align: right; color: #3f9d5a; }
   .pts.zero { color: #b8a888; }
   .tap-hint { font-size: 11px; color: #c4b393; font-weight: 500; }
 
@@ -129,8 +138,13 @@
 
   .overlay { position: fixed; inset: 0; background: rgba(40,30,15,.45); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
   .modal { background: #fffdf8; width: 100%; max-width: 560px; border-radius: 20px 20px 0 0; padding: 18px 18px 26px; box-shadow: 0 -6px 30px rgba(0,0,0,.2); }
-  .modal-head { display: flex; justify-content: space-between; align-items: center; font-size: 20px; font-weight: 800; margin-bottom: 14px; }
-  .x { border: none; background: #f0e6d2; width: 32px; height: 32px; border-radius: 50%; font-size: 15px; cursor: pointer; }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+  .mh-left { display: inline-flex; align-items: center; gap: 10px; }
+  .mh-left .avatar { width: 34px; height: 34px; font-size: 19px; }
+  .modal-fact { font-size: 13px; color: #a08a63; font-style: italic; margin: 0 0 12px; }
+  .x { border: none; background: #f0e6d2; width: 32px; height: 32px; border-radius: 50%; font-size: 15px; cursor: pointer; flex-shrink: 0; }
+  .edit-btn { width: 100%; padding: 9px; margin-bottom: 14px; border: 1px dashed #e0cfa8; background: transparent; color: #b39960; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .edit-btn:hover { background: #fdf6e7; }
   .col-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #a8987a; margin-bottom: 8px; }
   .presets { display: flex; flex-direction: column; gap: 7px; }
   .presets button { text-align: left; border: 2px solid #cdebd3; color: #2f7a45; border-radius: 12px; padding: 11px 13px; font-size: 14px; cursor: pointer; background: #fff; display: flex; justify-content: space-between; align-items: center; }
@@ -182,7 +196,7 @@
     { min: 175, title: '👑 Best Boy' },
   ];
 
-  const CHEERS = ['Good boy! 🎉', 'Nice one! 💪', "She noticed. 😊", 'Keep it up! 🔥', 'Certified helpful. ✅', 'Points earned! 🎀'];
+  const CHEERS = ['Good boy! 🎉', 'Nice one! 💪', 'She noticed. 😊', 'Keep it up! 🔥', 'Certified helpful. ✅', 'Points earned! 🎀'];
 
   const BASE = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
   const CONFIGURED = !BIN_ID.includes('YOUR-BIN') && !MASTER_KEY.includes('YOUR-');
@@ -203,6 +217,19 @@
     let base = 0;
     for (const r of REWARDS) { if (pts >= r.cost) base = r.cost; }
     return base;
+  }
+
+  // Rewards-only: scrub any leftover negatives from the old "bad boy" system
+  function sanitize() {
+    let changed = false;
+    for (const p of state.players) {
+      if (typeof p.points !== 'number' || isNaN(p.points)) { p.points = 0; changed = true; }
+      if (p.points < 0) { p.points = 0; changed = true; }
+    }
+    const before = (state.log || []).length;
+    state.log = (state.log || []).filter(e => e && e.pts > 0);
+    if (state.log.length !== before) changed = true;
+    return changed;
   }
 
   function setStatus(msg, ok) {
@@ -236,6 +263,7 @@
     } catch (e) {
       setStatus('⚠ Can\'t reach jsonbin — check your connection.', false);
     }
+    if (sanitize()) await save(); // one-time cleanup of old negatives
     document.getElementById('loading').style.display = 'none';
     document.getElementById('main').style.display = 'block';
     render();
@@ -262,6 +290,7 @@
       champ.style.display = 'block';
       champ.innerHTML = `
         <div class="crown">👑</div>
+        ${avatar(leader)}
         <div class="clabel">King of Good Boys · Winner of the Day</div>
         <div class="cname">${escapeHtml(leader.name)}</div>
         <div class="clevel">${levelFor(leader.points)} · ${leader.points} pts</div>`;
@@ -269,7 +298,7 @@
       champ.style.display = 'none';
     }
 
-    // Board with levels + progress to next reward
+    // Board with avatars, levels, fun facts, progress to next reward
     const board = document.getElementById('board');
     const medals = ['🥇', '🥈', '🥉'];
     board.innerHTML = sorted.map((p, i) => {
@@ -284,8 +313,10 @@
       const leaderCls = i === 0 && p.points > 0 ? ' leader' : '';
       return `<div class="row${leaderCls}" onclick="openModal('${encodeURIComponent(p.name)}')">
         ${rank}
+        ${avatar(p)}
         <div class="pmid">
           <div class="pname">${escapeHtml(p.name)} <span class="level-tag">${levelFor(p.points)}</span></div>
+          ${p.fact ? `<div class="fact">“${escapeHtml(p.fact)}”</div>` : ''}
           <div class="progress-wrap">
             <div class="bar"><i style="width:${pct}%"></i></div>
             <div class="next">${nextLine} · <span class="tap-hint">tap to score</span></div>
@@ -307,17 +338,32 @@
       </div>`;
     }).join('');
 
-    // Feed
+    // Feed (positive events only)
     const feed = document.getElementById('feed');
-    feed.innerHTML = state.log.length
-      ? state.log.slice(0, 25).map(e => {
-          const sign = e.pts >= 0 ? '+' : '';
-          return `<div class="feed-item"><span>${escapeHtml(e.name)} ${escapeHtml(e.reason)}</span><span class="fp">${sign}${e.pts}</span></div>`;
-        }).join('')
+    const entries = state.log.filter(e => e.pts > 0);
+    feed.innerHTML = entries.length
+      ? entries.slice(0, 25).map(e =>
+          `<div class="feed-item"><span>${escapeHtml(e.name)} ${escapeHtml(e.reason)}</span><span class="fp">+${e.pts}</span></div>`
+        ).join('')
       : '<div class="feed-empty">Nothing yet. Someone go be helpful. 🎀</div>';
   }
 
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  // Avatar: photo if provided, otherwise emoji in a circle (default 🐶)
+  function avatar(p) {
+    const emoji = escapeHtml(p.emoji || '🐶');
+    if (p.photo) return `<span class="avatar"><img src="${escapeHtml(p.photo)}" alt="" onerror="this.parentNode.textContent='${emoji}'"></span>`;
+    return `<span class="avatar emoji">${emoji}</span>`;
+  }
+
+  // Shared prompts for a guy's profile (used by add + edit)
+  function promptProfile(existing) {
+    const emoji = (prompt('Pick an emoji avatar (e.g. 🐕 🦊 🐻 🦁 🐶):', (existing && existing.emoji) || '🐶') || '').trim();
+    const fact  = (prompt('A fun fact or nickname (optional):', (existing && existing.fact) || '') || '').trim();
+    const photo = (prompt('Photo URL (optional — paste a link to a pic):', (existing && existing.photo) || '') || '').trim();
+    return { emoji: emoji || '🐶', fact, photo };
+  }
 
   function toast(msg, gold) {
     const t = document.getElementById('toast');
@@ -343,13 +389,29 @@
     const name = prompt('Name of the guy:');
     if (!name || !name.trim()) return;
     if (state.players.some(p => p.name.toLowerCase() === name.trim().toLowerCase())) { alert('Already on the board.'); return; }
-    state.players.push({ name: name.trim(), points: 0 });
+    const prof = promptProfile();
+    state.players.push({ name: name.trim(), points: 0, emoji: prof.emoji, fact: prof.fact, photo: prof.photo });
     await save(); render();
+  }
+
+  async function editPlayer() {
+    const p = state.players.find(x => x.name === activeName);
+    if (!p) return;
+    const prof = promptProfile(p);
+    p.emoji = prof.emoji; p.fact = prof.fact; p.photo = prof.photo;
+    await save();
+    openModal(encodeURIComponent(activeName)); // refresh modal contents
+    render();
   }
 
   function openModal(enc) {
     activeName = decodeURIComponent(enc);
+    const p = state.players.find(x => x.name === activeName);
     document.getElementById('modalName').textContent = activeName;
+    document.getElementById('modalAvatar').innerHTML = p ? avatar(p) : '';
+    const factEl = document.getElementById('modalFact');
+    if (p && p.fact) { factEl.textContent = '“' + p.fact + '”'; factEl.style.display = 'block'; }
+    else { factEl.textContent = ''; factEl.style.display = 'none'; }
     document.getElementById('customPts').value = '';
     document.getElementById('customReason').value = '';
     document.getElementById('modal').style.display = 'flex';
@@ -360,7 +422,7 @@
   async function customApply() {
     const pts = parseInt(document.getElementById('customPts').value, 10);
     const reason = document.getElementById('customReason').value.trim();
-    if (!pts || isNaN(pts)) { alert('Enter a point value (e.g. 5).'); return; }
+    if (!pts || isNaN(pts) || pts <= 0) { alert('Enter a positive point value (e.g. 5). This board is rewards only. 🎀'); return; }
     await applyPoints(pts, reason || 'earned points');
   }
 
@@ -373,21 +435,18 @@
     state.log.unshift({ name: activeName, pts, reason, t: Date.now() });
     if (state.log.length > 100) state.log = state.log.slice(0, 100);
 
-    // Celebration logic: did he unlock a reward or level up?
+    // Celebration: did he unlock a reward or level up?
     const unlockedReward = REWARDS.find(r => before < r.cost && after >= r.cost);
     const leveledUp = levelFor(before) !== levelFor(after) && after > before;
 
-    const name = escapeHtml(activeName);
     if (unlockedReward) {
       toast(`🎁 ${activeName} unlocked ${unlockedReward.name.replace(/^[^ ]+ /, '')}!`, true);
       confetti();
     } else if (leveledUp) {
       toast(`🏅 ${activeName} leveled up to ${levelFor(after).replace(/^[^ ]+ /, '')}!`, true);
       confetti();
-    } else if (pts > 0) {
-      toast(`+${pts} · ${CHEERS[Math.floor(Math.random() * CHEERS.length)]}`);
     } else {
-      toast(`${pts} for ${activeName}`);
+      toast(`+${pts} · ${CHEERS[Math.floor(Math.random() * CHEERS.length)]}`);
     }
 
     await save();
