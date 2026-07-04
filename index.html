@@ -1,0 +1,246 @@
+<div id="app">
+  <div class="wrap">
+    <header>
+      <h1>🦴 Good Boy Points</h1>
+      <p class="sub">Do something nice, earn a treat. Slack off, lose one.</p>
+      <div id="status" class="status"></div>
+    </header>
+    <div id="loading" class="card center">Fetching the scoreboard…</div>
+    <div id="main" style="display:none">
+      <div id="board" class="board"></div>
+      <button id="addPlayerBtn" class="ghost-btn">+ Add a guy</button>
+      <h2 class="feed-title">📋 Activity Feed</h2>
+      <div id="feed" class="feed"></div>
+    </div>
+  </div>
+
+  <!-- Points modal -->
+  <div id="modal" class="overlay" style="display:none">
+    <div class="modal">
+      <div class="modal-head">
+        <span id="modalName">Player</span>
+        <button class="x" onclick="closeModal()">✕</button>
+      </div>
+      <div class="presets">
+        <div class="preset-col good">
+          <div class="col-label">Good boy 🥰</div>
+          <button onclick="quick(3,'gave a genuine compliment')">Compliment <b>+3</b></button>
+          <button onclick="quick(5,'brought her a drink')">Brought a drink <b>+5</b></button>
+          <button onclick="quick(8,'planned something thoughtful')">Planned something <b>+8</b></button>
+          <button onclick="quick(10,'did a chore unprompted')">Did a chore <b>+10</b></button>
+        </div>
+        <div class="preset-col bad">
+          <div class="col-label">Bad boy 😤</div>
+          <button onclick="quick(-3,'ignored a text')">Ignored a text <b>-3</b></button>
+          <button onclick="quick(-4,'was late')">Was late <b>-4</b></button>
+          <button onclick="quick(-5,'left a mess')">Left a mess <b>-5</b></button>
+          <button onclick="quick(-8,'was rude')">Was rude <b>-8</b></button>
+        </div>
+      </div>
+      <div class="custom">
+        <div class="col-label">Custom</div>
+        <div class="custom-row">
+          <input id="customPts" type="number" placeholder="±pts" />
+          <input id="customReason" type="text" placeholder="what happened…" />
+        </div>
+        <button class="apply" onclick="customApply()">Apply</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  #app { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #2b2118; }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 8px 14px 60px; }
+  header { text-align: center; margin: 10px 0 20px; }
+  h1 { font-size: 30px; margin: 4px 0; letter-spacing: -0.5px; }
+  .sub { color: #9a8a72; font-size: 14px; margin: 0; }
+  .status { font-size: 12px; margin-top: 8px; font-weight: 600; min-height: 16px; }
+  .status.ok { color: #3f9d5a; }
+  .status.warn { color: #d05656; }
+  .card { background: #fff8ec; border: 2px solid #f0e2c8; border-radius: 16px; padding: 18px; }
+  .center { text-align: center; color: #9a8a72; }
+  .board { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+  .row {
+    display: flex; align-items: center; gap: 12px;
+    background: #fff8ec; border: 2px solid #f0e2c8; border-radius: 16px;
+    padding: 14px 16px; cursor: pointer; transition: transform .08s, box-shadow .15s;
+  }
+  .row:active { transform: scale(0.98); }
+  .row:hover { box-shadow: 0 4px 14px rgba(210,170,90,.18); }
+  .rank { font-size: 22px; width: 30px; text-align: center; }
+  .rank.num { font-size: 15px; color: #b8a888; font-weight: 700; }
+  .pname { flex: 1; font-size: 17px; font-weight: 600; }
+  .pts { font-size: 22px; font-weight: 800; min-width: 54px; text-align: right; }
+  .pts.pos { color: #3f9d5a; }
+  .pts.neg { color: #d05656; }
+  .pts.zero { color: #b8a888; }
+  .tap-hint { font-size: 11px; color: #c4b393; margin-left: 6px; }
+  .ghost-btn {
+    width: 100%; padding: 13px; border: 2px dashed #e0cfa8; background: transparent;
+    color: #b39960; border-radius: 14px; font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .ghost-btn:hover { background: #fdf6e7; }
+  .feed-title { font-size: 16px; margin: 26px 0 10px; color: #8a7a60; }
+  .feed { display: flex; flex-direction: column; gap: 6px; }
+  .feed-item {
+    font-size: 13px; color: #6b5d47; background: #fffdf8; border: 1px solid #f2e8d4;
+    border-radius: 10px; padding: 9px 12px; display: flex; justify-content: space-between; gap: 10px;
+  }
+  .feed-item .fp { font-weight: 800; white-space: nowrap; }
+  .fp.pos { color: #3f9d5a; } .fp.neg { color: #d05656; }
+  .feed-empty { color: #c4b393; font-size: 13px; text-align: center; padding: 10px; }
+  .overlay { position: fixed; inset: 0; background: rgba(40,30,15,.45); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
+  .modal { background: #fffdf8; width: 100%; max-width: 560px; border-radius: 20px 20px 0 0; padding: 18px 18px 26px; box-shadow: 0 -6px 30px rgba(0,0,0,.2); }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; font-size: 20px; font-weight: 800; margin-bottom: 14px; }
+  .x { border: none; background: #f0e6d2; width: 32px; height: 32px; border-radius: 50%; font-size: 15px; cursor: pointer; }
+  .presets { display: flex; gap: 10px; }
+  .preset-col { flex: 1; display: flex; flex-direction: column; gap: 7px; }
+  .col-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #a8987a; margin-bottom: 2px; }
+  .preset-col button { text-align: left; border: 2px solid; border-radius: 12px; padding: 10px 12px; font-size: 13px; cursor: pointer; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+  .good button { border-color: #cdebd3; color: #2f7a45; } .good button:hover { background: #f0faf2; }
+  .bad button { border-color: #f4d3d3; color: #b34242; } .bad button:hover { background: #fdf2f2; }
+  .custom { margin-top: 16px; }
+  .custom-row { display: flex; gap: 8px; }
+  .custom input { border: 2px solid #f0e2c8; border-radius: 12px; padding: 11px; font-size: 15px; }
+  #customPts { width: 80px; }
+  #customReason { flex: 1; }
+  .apply { margin-top: 8px; width: 100%; padding: 12px; border: none; border-radius: 12px; background: #e0a83f; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; }
+  .apply:hover { background: #d19a30; }
+</style>
+
+<script>
+  // ============================================================
+  //  ⚙️  PASTE YOUR JSONBIN INFO HERE
+  const BIN_ID = '6a4957eaf5f4af5e295fe92e';          // from the bin's page / URL
+  const MASTER_KEY = '$2a$10$b2Guy1KOs2DZfAQi.quG0eUrm4sTVYzJ4whVLPlIN4bCaVe2SLi9q'; // API Keys page → X-MASTER-KEY
+  // ============================================================
+
+  const BASE = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+  const CONFIGURED = !BIN_ID.includes('YOUR-BIN') && !MASTER_KEY.includes('YOUR-');
+  const HEADERS = {
+    'Content-Type': 'application/json',
+    'X-Master-Key': MASTER_KEY
+  };
+  let state = { players: [], log: [] };
+  let activeName = null;
+
+  function setStatus(msg, ok) {
+    const el = document.getElementById('status');
+    if (el) { el.textContent = msg; el.className = 'status ' + (ok ? 'ok' : 'warn'); }
+  }
+  function reason(code) {
+    if (code === 401) return 'Check your X-Master-Key.';
+    if (code === 404) return 'Check your Bin ID.';
+    return '';
+  }
+
+  async function load() {
+    if (!CONFIGURED) {
+      setStatus('⚠ Add your Bin ID + X-Master-Key in the code (top of the script).', false);
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('main').style.display = 'block';
+      render();
+      return;
+    }
+    try {
+      const res = await fetch(BASE + '/latest', { headers: HEADERS });
+      if (!res.ok) {
+        setStatus(`⚠ Read failed (${res.status}). ${reason(res.status)}`, false);
+      } else {
+        const json = await res.json();
+        const data = json.record || json;
+        if (data && Array.isArray(data.players)) { state = data; setStatus('✓ Synced', true); }
+        else setStatus('✓ Synced', true);
+      }
+    } catch (e) {
+      setStatus('⚠ Can\'t reach jsonbin — check your connection.', false);
+    }
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+    render();
+  }
+
+  async function save() {
+    if (!CONFIGURED) { setStatus('⚠ Not saved — add your jsonbin info first.', false); return; }
+    try {
+      const res = await fetch(BASE, {
+        method: 'PUT',
+        headers: HEADERS,
+        body: JSON.stringify(state)
+      });
+      if (!res.ok) setStatus(`⚠ Save failed (${res.status}). ${reason(res.status)}`, false);
+      else setStatus('✓ Synced', true);
+    } catch (e) {
+      setStatus('⚠ Save failed — check your connection.', false);
+    }
+  }
+
+  function render() {
+    const board = document.getElementById('board');
+    const sorted = [...state.players].sort((a, b) => b.points - a.points);
+    const medals = ['🥇', '🥈', '🥉'];
+    board.innerHTML = sorted.map((p, i) => {
+      const cls = p.points > 0 ? 'pos' : p.points < 0 ? 'neg' : 'zero';
+      const rank = i < 3 ? `<span class="rank">${medals[i]}</span>` : `<span class="rank num">${i + 1}</span>`;
+      const sign = p.points > 0 ? '+' : '';
+      return `<div class="row" onclick="openModal('${encodeURIComponent(p.name)}')">
+        ${rank}
+        <span class="pname">${escapeHtml(p.name)}<span class="tap-hint">tap to score</span></span>
+        <span class="pts ${cls}">${sign}${p.points}</span>
+      </div>`;
+    }).join('') || '<div class="card center">No players yet — add the crew below 👇</div>';
+
+    const feed = document.getElementById('feed');
+    feed.innerHTML = state.log.length
+      ? state.log.slice(0, 25).map(e => {
+          const c = e.pts >= 0 ? 'pos' : 'neg';
+          const sign = e.pts >= 0 ? '+' : '';
+          return `<div class="feed-item"><span>${escapeHtml(e.name)} ${escapeHtml(e.reason)}</span><span class="fp ${c}">${sign}${e.pts}</span></div>`;
+        }).join('')
+      : '<div class="feed-empty">Nothing yet. Someone go be nice.</div>';
+  }
+
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  async function addPlayer() {
+    const name = prompt('Name of the guy:');
+    if (!name || !name.trim()) return;
+    if (state.players.some(p => p.name.toLowerCase() === name.trim().toLowerCase())) { alert('Already on the board.'); return; }
+    state.players.push({ name: name.trim(), points: 0 });
+    await save(); render();
+  }
+
+  function openModal(enc) {
+    activeName = decodeURIComponent(enc);
+    document.getElementById('modalName').textContent = activeName;
+    document.getElementById('customPts').value = '';
+    document.getElementById('customReason').value = '';
+    document.getElementById('modal').style.display = 'flex';
+  }
+  function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
+  async function quick(pts, reason) { await applyPoints(pts, reason); }
+  async function customApply() {
+    const pts = parseInt(document.getElementById('customPts').value, 10);
+    const reason = document.getElementById('customReason').value.trim();
+    if (!pts || isNaN(pts)) { alert('Enter a point value (e.g. 5 or -5).'); return; }
+    await applyPoints(pts, reason || 'no reason given');
+  }
+
+  async function applyPoints(pts, reason) {
+    const p = state.players.find(x => x.name === activeName);
+    if (!p) return;
+    p.points += pts;
+    state.log.unshift({ name: activeName, pts, reason, t: Date.now() });
+    if (state.log.length > 100) state.log = state.log.slice(0, 100);
+    await save();
+    closeModal();
+    render();
+  }
+
+  document.getElementById('addPlayerBtn').addEventListener('click', addPlayer);
+  load();
+  // light polling so phones stay roughly in sync
+  setInterval(load, 8000);
+</script>
