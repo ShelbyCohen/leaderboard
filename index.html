@@ -184,6 +184,12 @@
   const MASTER_KEY = '$2a$10$b2Guy1KOs2DZfAQi.quG0eUrm4sTVYzJ4whVLPlIN4bCaVe2SLi9q';
   // ============================================================
 
+  //  📲  SMS NOTIFICATIONS (optional) — see SMS_SETUP.md
+  //  Blank NOTIFY_URL = off. Paste your Cloudflare Worker URL to turn texts on.
+  const NOTIFY_URL = '';
+  const NOTIFY_KEY = 'goodboy-secret-change-me'; // must match SHARED_KEY in the Worker
+  // ============================================================
+
   //  🎁  REWARD LADDER — edit freely (cost = points needed)
   const REWARDS = [
     { cost: 50,  name: '🍽️ Dinner of your choice' },
@@ -369,6 +375,18 @@
     return { emoji: emoji || '🐶', fact, photo };
   }
 
+  // Fire-and-forget: tell the Worker to text the OTHER guys
+  function notify(scorer, pts, reason) {
+    if (!NOTIFY_URL || !(pts > 0)) return;
+    try {
+      fetch(NOTIFY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: NOTIFY_KEY, scorer, pts, reason })
+      }).catch(() => {});
+    } catch (e) {}
+  }
+
   function toast(msg, gold) {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -454,6 +472,7 @@
     }
 
     await save();
+    notify(activeName, pts, reason); // text the other guys
     closeModal();
     render();
   }
