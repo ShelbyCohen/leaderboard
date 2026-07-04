@@ -1,58 +1,64 @@
 <div id="app">
   <div class="wrap">
     <header>
-      <h1>🦴 Good Boy Points</h1>
-      <p class="sub">Do something nice, earn a treat. Slack off, lose one.</p>
+      <h1>🎀 Good Boy Points</h1>
+      <p class="sub">Be helpful. Earn treats. Climb the ranks. 🏆</p>
       <div id="status" class="status"></div>
     </header>
+
     <div id="loading" class="card center">Fetching the scoreboard…</div>
+
     <div id="main" style="display:none">
+      <!-- Champion spotlight -->
+      <div id="champion" class="champion" style="display:none"></div>
+
       <div id="board" class="board"></div>
       <button id="addPlayerBtn" class="ghost-btn">+ Add a guy</button>
-      <h2 class="feed-title">📋 Activity Feed</h2>
+
+      <!-- Reward ladder: what they can earn -->
+      <h2 class="section-title">🎁 What You Can Earn</h2>
+      <div id="rewards" class="rewards"></div>
+
+      <h2 class="section-title">📋 Activity Feed</h2>
       <div id="feed" class="feed"></div>
     </div>
   </div>
 
-  <!-- Points modal -->
+  <!-- Points modal (rewards only) -->
   <div id="modal" class="overlay" style="display:none">
     <div class="modal">
       <div class="modal-head">
         <span id="modalName">Player</span>
         <button class="x" onclick="closeModal()">✕</button>
       </div>
+      <div class="col-label">Give him points 🥰</div>
       <div class="presets">
-        <div class="preset-col good">
-          <div class="col-label">Good boy 🥰</div>
-          <button onclick="quick(3,'gave a genuine compliment')">Compliment <b>+3</b></button>
-          <button onclick="quick(5,'brought her a drink')">Brought a drink <b>+5</b></button>
-          <button onclick="quick(8,'planned something thoughtful')">Planned something <b>+8</b></button>
-          <button onclick="quick(10,'did a chore unprompted')">Did a chore <b>+10</b></button>
-        </div>
-        <div class="preset-col bad">
-          <div class="col-label">Bad boy 😤</div>
-          <button onclick="quick(-3,'ignored a text')">Ignored a text <b>-3</b></button>
-          <button onclick="quick(-4,'was late')">Was late <b>-4</b></button>
-          <button onclick="quick(-5,'left a mess')">Left a mess <b>-5</b></button>
-          <button onclick="quick(-8,'was rude')">Was rude <b>-8</b></button>
-        </div>
+        <button onclick="quick(3,'💬 gave a genuine compliment')">💬 Genuine compliment <b>+3</b></button>
+        <button onclick="quick(5,'☕ brought her a drink or snack')">☕ Brought a drink / snack <b>+5</b></button>
+        <button onclick="quick(10,'🧹 did a chore unprompted')">🧹 Did a chore unprompted <b>+10</b></button>
+        <button onclick="quick(12,'📅 planned something thoughtful')">📅 Planned something thoughtful <b>+12</b></button>
+        <button onclick="quick(15,'🛠️ took a task off her plate')">🛠️ Took a task off her plate <b>+15</b></button>
+        <button onclick="quick(20,'💝 went above and beyond')">💝 Went above &amp; beyond <b>+20</b></button>
       </div>
       <div class="custom">
-        <div class="col-label">Custom</div>
+        <div class="col-label">Custom reward</div>
         <div class="custom-row">
-          <input id="customPts" type="number" placeholder="±pts" />
-          <input id="customReason" type="text" placeholder="what happened…" />
+          <input id="customPts" type="number" min="1" placeholder="+pts" />
+          <input id="customReason" type="text" placeholder="what he did…" />
         </div>
-        <button class="apply" onclick="customApply()">Apply</button>
+        <button class="apply" onclick="customApply()">Give points</button>
       </div>
     </div>
   </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
 </div>
 
 <style>
   #app { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #2b2118; }
   .wrap { max-width: 560px; margin: 0 auto; padding: 8px 14px 60px; }
-  header { text-align: center; margin: 10px 0 20px; }
+  header { text-align: center; margin: 10px 0 18px; }
   h1 { font-size: 30px; margin: 4px 0; letter-spacing: -0.5px; }
   .sub { color: #9a8a72; font-size: 14px; margin: 0; }
   .status { font-size: 12px; margin-top: 8px; font-weight: 600; min-height: 16px; }
@@ -60,46 +66,76 @@
   .status.warn { color: #d05656; }
   .card { background: #fff8ec; border: 2px solid #f0e2c8; border-radius: 16px; padding: 18px; }
   .center { text-align: center; color: #9a8a72; }
+  .section-title { font-size: 16px; margin: 28px 0 10px; color: #8a7a60; }
+
+  /* Champion spotlight */
+  .champion {
+    background: linear-gradient(135deg, #fff3d2, #ffe6a8);
+    border: 2px solid #e9c65f; border-radius: 18px;
+    padding: 14px 18px; margin-bottom: 16px; text-align: center;
+    box-shadow: 0 6px 20px rgba(220,175,60,.25);
+  }
+  .champion .crown { font-size: 30px; }
+  .champion .cname { font-size: 20px; font-weight: 800; margin: 2px 0; }
+  .champion .clabel { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: #b58a1e; }
+  .champion .clevel { font-size: 13px; color: #8a6d1f; font-weight: 600; }
+
   .board { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
   .row {
     display: flex; align-items: center; gap: 12px;
     background: #fff8ec; border: 2px solid #f0e2c8; border-radius: 16px;
     padding: 14px 16px; cursor: pointer; transition: transform .08s, box-shadow .15s;
   }
+  .row.leader { border-color: #e9c65f; background: #fffaf0; }
   .row:active { transform: scale(0.98); }
   .row:hover { box-shadow: 0 4px 14px rgba(210,170,90,.18); }
   .rank { font-size: 22px; width: 30px; text-align: center; }
   .rank.num { font-size: 15px; color: #b8a888; font-weight: 700; }
-  .pname { flex: 1; font-size: 17px; font-weight: 600; }
-  .pts { font-size: 22px; font-weight: 800; min-width: 54px; text-align: right; }
-  .pts.pos { color: #3f9d5a; }
-  .pts.neg { color: #d05656; }
+  .pmid { flex: 1; min-width: 0; }
+  .pname { font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 7px; }
+  .level-tag { font-size: 11px; font-weight: 700; color: #a07d2a; background: #fbeecb; padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
+  .progress-wrap { margin-top: 7px; }
+  .bar { height: 7px; background: #f0e6d0; border-radius: 6px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: linear-gradient(90deg, #f0c14b, #e0a83f); border-radius: 6px; transition: width .4s; }
+  .next { font-size: 11px; color: #a8987a; margin-top: 4px; }
+  .pts { font-size: 22px; font-weight: 800; min-width: 46px; text-align: right; color: #3f9d5a; }
   .pts.zero { color: #b8a888; }
-  .tap-hint { font-size: 11px; color: #c4b393; margin-left: 6px; }
+  .tap-hint { font-size: 11px; color: #c4b393; font-weight: 500; }
+
   .ghost-btn {
     width: 100%; padding: 13px; border: 2px dashed #e0cfa8; background: transparent;
     color: #b39960; border-radius: 14px; font-size: 15px; font-weight: 600; cursor: pointer;
   }
   .ghost-btn:hover { background: #fdf6e7; }
-  .feed-title { font-size: 16px; margin: 26px 0 10px; color: #8a7a60; }
+
+  /* Rewards ladder */
+  .rewards { display: flex; flex-direction: column; gap: 8px; }
+  .reward-item {
+    display: flex; align-items: center; gap: 12px;
+    background: #fffdf8; border: 1px solid #f2e8d4; border-radius: 12px; padding: 11px 14px;
+  }
+  .reward-item .rcost { font-size: 15px; font-weight: 800; color: #e0a83f; min-width: 62px; }
+  .reward-item .rname { flex: 1; font-size: 14px; color: #5f5238; }
+  .reward-item .rwho { font-size: 11px; font-weight: 700; color: #3f9d5a; white-space: nowrap; }
+  .reward-item.locked { opacity: .72; }
+
   .feed { display: flex; flex-direction: column; gap: 6px; }
   .feed-item {
     font-size: 13px; color: #6b5d47; background: #fffdf8; border: 1px solid #f2e8d4;
     border-radius: 10px; padding: 9px 12px; display: flex; justify-content: space-between; gap: 10px;
   }
-  .feed-item .fp { font-weight: 800; white-space: nowrap; }
-  .fp.pos { color: #3f9d5a; } .fp.neg { color: #d05656; }
+  .feed-item .fp { font-weight: 800; white-space: nowrap; color: #3f9d5a; }
   .feed-empty { color: #c4b393; font-size: 13px; text-align: center; padding: 10px; }
+
   .overlay { position: fixed; inset: 0; background: rgba(40,30,15,.45); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
   .modal { background: #fffdf8; width: 100%; max-width: 560px; border-radius: 20px 20px 0 0; padding: 18px 18px 26px; box-shadow: 0 -6px 30px rgba(0,0,0,.2); }
   .modal-head { display: flex; justify-content: space-between; align-items: center; font-size: 20px; font-weight: 800; margin-bottom: 14px; }
   .x { border: none; background: #f0e6d2; width: 32px; height: 32px; border-radius: 50%; font-size: 15px; cursor: pointer; }
-  .presets { display: flex; gap: 10px; }
-  .preset-col { flex: 1; display: flex; flex-direction: column; gap: 7px; }
-  .col-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #a8987a; margin-bottom: 2px; }
-  .preset-col button { text-align: left; border: 2px solid; border-radius: 12px; padding: 10px 12px; font-size: 13px; cursor: pointer; background: #fff; display: flex; justify-content: space-between; align-items: center; }
-  .good button { border-color: #cdebd3; color: #2f7a45; } .good button:hover { background: #f0faf2; }
-  .bad button { border-color: #f4d3d3; color: #b34242; } .bad button:hover { background: #fdf2f2; }
+  .col-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #a8987a; margin-bottom: 8px; }
+  .presets { display: flex; flex-direction: column; gap: 7px; }
+  .presets button { text-align: left; border: 2px solid #cdebd3; color: #2f7a45; border-radius: 12px; padding: 11px 13px; font-size: 14px; cursor: pointer; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+  .presets button:hover { background: #f0faf2; }
+  .presets button b { font-size: 15px; }
   .custom { margin-top: 16px; }
   .custom-row { display: flex; gap: 8px; }
   .custom input { border: 2px solid #f0e2c8; border-radius: 12px; padding: 11px; font-size: 15px; }
@@ -107,23 +143,67 @@
   #customReason { flex: 1; }
   .apply { margin-top: 8px; width: 100%; padding: 12px; border: none; border-radius: 12px; background: #e0a83f; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; }
   .apply:hover { background: #d19a30; }
+
+  /* Toast */
+  .toast {
+    position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%) translateY(20px);
+    background: #2f7a45; color: #fff; padding: 12px 20px; border-radius: 30px;
+    font-size: 14px; font-weight: 700; box-shadow: 0 8px 24px rgba(0,0,0,.25);
+    opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; z-index: 60; max-width: 90%; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.gold { background: #d9a022; }
+
+  .confetti { position: fixed; top: -20px; font-size: 18px; z-index: 55; pointer-events: none; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(105vh) rotate(360deg); opacity: .9; } }
 </style>
 
 <script>
   // ============================================================
-  //  ⚙️  PASTE YOUR JSONBIN INFO HERE
-  const BIN_ID = '6a4957eaf5f4af5e295fe92e';          // from the bin's page / URL
-  const MASTER_KEY = '$2a$10$b2Guy1KOs2DZfAQi.quG0eUrm4sTVYzJ4whVLPlIN4bCaVe2SLi9q'; // API Keys page → X-MASTER-KEY
+  //  ⚙️  JSONBIN CONFIG
+  const BIN_ID = '6a4957eaf5f4af5e295fe92e';
+  const MASTER_KEY = '$2a$10$b2Guy1KOs2DZfAQi.quG0eUrm4sTVYzJ4whVLPlIN4bCaVe2SLi9q';
   // ============================================================
+
+  //  🎁  REWARD LADDER — edit freely (cost = points needed)
+  const REWARDS = [
+    { cost: 25,  name: '🎬 You pick movie night' },
+    { cost: 50,  name: '🍽️ Dinner of your choice' },
+    { cost: 100, name: '💆 A 30-minute massage' },
+    { cost: 175, name: '👑 "Best Boy" — a full day your way' },
+  ];
+
+  //  🏅  LEVELS — title unlocked at each points threshold
+  const LEVELS = [
+    { min: 0,   title: '🐶 Puppy-in-training' },
+    { min: 25,  title: '🎀 Good Boy' },
+    { min: 50,  title: '⭐ Very Good Boy' },
+    { min: 100, title: '🌟 Star Boy' },
+    { min: 175, title: '👑 Best Boy' },
+  ];
+
+  const CHEERS = ['Good boy! 🎉', 'Nice one! 💪', "She noticed. 😊", 'Keep it up! 🔥', 'Certified helpful. ✅', 'Points earned! 🎀'];
 
   const BASE = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
   const CONFIGURED = !BIN_ID.includes('YOUR-BIN') && !MASTER_KEY.includes('YOUR-');
-  const HEADERS = {
-    'Content-Type': 'application/json',
-    'X-Master-Key': MASTER_KEY
-  };
+  const HEADERS = { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY };
   let state = { players: [], log: [] };
   let activeName = null;
+
+  function levelFor(pts) {
+    let lv = LEVELS[0];
+    for (const l of LEVELS) if (pts >= l.min) lv = l;
+    return lv.title;
+  }
+  function nextReward(pts) {
+    for (const r of REWARDS) if (pts < r.cost) return r;
+    return null; // maxed out
+  }
+  function prevRewardCost(pts) {
+    let base = 0;
+    for (const r of REWARDS) { if (pts >= r.cost) base = r.cost; }
+    return base;
+  }
 
   function setStatus(msg, ok) {
     const el = document.getElementById('status');
@@ -164,11 +244,7 @@
   async function save() {
     if (!CONFIGURED) { setStatus('⚠ Not saved — add your jsonbin info first.', false); return; }
     try {
-      const res = await fetch(BASE, {
-        method: 'PUT',
-        headers: HEADERS,
-        body: JSON.stringify(state)
-      });
+      const res = await fetch(BASE, { method: 'PUT', headers: HEADERS, body: JSON.stringify(state) });
       if (!res.ok) setStatus(`⚠ Save failed (${res.status}). ${reason(res.status)}`, false);
       else setStatus('✓ Synced', true);
     } catch (e) {
@@ -177,31 +253,91 @@
   }
 
   function render() {
-    const board = document.getElementById('board');
     const sorted = [...state.players].sort((a, b) => b.points - a.points);
+
+    // Champion spotlight
+    const champ = document.getElementById('champion');
+    const leader = sorted[0];
+    if (leader && leader.points > 0) {
+      champ.style.display = 'block';
+      champ.innerHTML = `
+        <div class="crown">👑</div>
+        <div class="clabel">King of Good Boys · Winner of the Day</div>
+        <div class="cname">${escapeHtml(leader.name)}</div>
+        <div class="clevel">${levelFor(leader.points)} · ${leader.points} pts</div>`;
+    } else {
+      champ.style.display = 'none';
+    }
+
+    // Board with levels + progress to next reward
+    const board = document.getElementById('board');
     const medals = ['🥇', '🥈', '🥉'];
     board.innerHTML = sorted.map((p, i) => {
-      const cls = p.points > 0 ? 'pos' : p.points < 0 ? 'neg' : 'zero';
       const rank = i < 3 ? `<span class="rank">${medals[i]}</span>` : `<span class="rank num">${i + 1}</span>`;
-      const sign = p.points > 0 ? '+' : '';
-      return `<div class="row" onclick="openModal('${encodeURIComponent(p.name)}')">
+      const nr = nextReward(p.points);
+      const floor = prevRewardCost(p.points);
+      let pct = 100, nextLine = '🏆 Maxed out — every reward unlocked!';
+      if (nr) {
+        pct = Math.max(0, Math.min(100, ((p.points - floor) / (nr.cost - floor)) * 100));
+        nextLine = `${nr.cost - p.points} pts to ${escapeHtml(nr.name)}`;
+      }
+      const leaderCls = i === 0 && p.points > 0 ? ' leader' : '';
+      return `<div class="row${leaderCls}" onclick="openModal('${encodeURIComponent(p.name)}')">
         ${rank}
-        <span class="pname">${escapeHtml(p.name)}<span class="tap-hint">tap to score</span></span>
-        <span class="pts ${cls}">${sign}${p.points}</span>
+        <div class="pmid">
+          <div class="pname">${escapeHtml(p.name)} <span class="level-tag">${levelFor(p.points)}</span></div>
+          <div class="progress-wrap">
+            <div class="bar"><i style="width:${pct}%"></i></div>
+            <div class="next">${nextLine} · <span class="tap-hint">tap to score</span></div>
+          </div>
+        </div>
+        <span class="pts ${p.points === 0 ? 'zero' : ''}">${p.points}</span>
       </div>`;
     }).join('') || '<div class="card center">No players yet — add the crew below 👇</div>';
 
+    // Rewards ladder — show who's earned each
+    const rew = document.getElementById('rewards');
+    rew.innerHTML = REWARDS.map(r => {
+      const earned = sorted.filter(p => p.points >= r.cost).map(p => p.name);
+      const who = earned.length ? `✓ ${earned.map(escapeHtml).join(', ')}` : `🔒 ${r.cost} pts`;
+      return `<div class="reward-item ${earned.length ? '' : 'locked'}">
+        <span class="rcost">${r.cost} pts</span>
+        <span class="rname">${escapeHtml(r.name)}</span>
+        <span class="rwho">${who}</span>
+      </div>`;
+    }).join('');
+
+    // Feed
     const feed = document.getElementById('feed');
     feed.innerHTML = state.log.length
       ? state.log.slice(0, 25).map(e => {
-          const c = e.pts >= 0 ? 'pos' : 'neg';
           const sign = e.pts >= 0 ? '+' : '';
-          return `<div class="feed-item"><span>${escapeHtml(e.name)} ${escapeHtml(e.reason)}</span><span class="fp ${c}">${sign}${e.pts}</span></div>`;
+          return `<div class="feed-item"><span>${escapeHtml(e.name)} ${escapeHtml(e.reason)}</span><span class="fp">${sign}${e.pts}</span></div>`;
         }).join('')
-      : '<div class="feed-empty">Nothing yet. Someone go be nice.</div>';
+      : '<div class="feed-empty">Nothing yet. Someone go be helpful. 🎀</div>';
   }
 
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  function toast(msg, gold) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (gold ? ' gold' : '');
+    clearTimeout(t._h);
+    t._h = setTimeout(() => { t.className = 'toast'; }, 2600);
+  }
+  function confetti() {
+    const emojis = ['🎉', '🎀', '⭐', '🏆', '✨'];
+    for (let i = 0; i < 18; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.animationDuration = (1.6 + Math.random() * 1.2) + 's';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 3000);
+    }
+  }
 
   async function addPlayer() {
     const name = prompt('Name of the guy:');
@@ -224,16 +360,36 @@
   async function customApply() {
     const pts = parseInt(document.getElementById('customPts').value, 10);
     const reason = document.getElementById('customReason').value.trim();
-    if (!pts || isNaN(pts)) { alert('Enter a point value (e.g. 5 or -5).'); return; }
-    await applyPoints(pts, reason || 'no reason given');
+    if (!pts || isNaN(pts)) { alert('Enter a point value (e.g. 5).'); return; }
+    await applyPoints(pts, reason || 'earned points');
   }
 
   async function applyPoints(pts, reason) {
     const p = state.players.find(x => x.name === activeName);
     if (!p) return;
+    const before = p.points;
     p.points += pts;
+    const after = p.points;
     state.log.unshift({ name: activeName, pts, reason, t: Date.now() });
     if (state.log.length > 100) state.log = state.log.slice(0, 100);
+
+    // Celebration logic: did he unlock a reward or level up?
+    const unlockedReward = REWARDS.find(r => before < r.cost && after >= r.cost);
+    const leveledUp = levelFor(before) !== levelFor(after) && after > before;
+
+    const name = escapeHtml(activeName);
+    if (unlockedReward) {
+      toast(`🎁 ${activeName} unlocked ${unlockedReward.name.replace(/^[^ ]+ /, '')}!`, true);
+      confetti();
+    } else if (leveledUp) {
+      toast(`🏅 ${activeName} leveled up to ${levelFor(after).replace(/^[^ ]+ /, '')}!`, true);
+      confetti();
+    } else if (pts > 0) {
+      toast(`+${pts} · ${CHEERS[Math.floor(Math.random() * CHEERS.length)]}`);
+    } else {
+      toast(`${pts} for ${activeName}`);
+    }
+
     await save();
     closeModal();
     render();
@@ -241,6 +397,5 @@
 
   document.getElementById('addPlayerBtn').addEventListener('click', addPlayer);
   load();
-  // light polling so phones stay roughly in sync
   setInterval(load, 8000);
 </script>
